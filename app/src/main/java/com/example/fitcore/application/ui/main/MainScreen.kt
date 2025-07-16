@@ -1,4 +1,4 @@
-package com.example.fitcore.ui.theme
+package com.example.fitcore.application.ui.main
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -6,26 +6,15 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.example.fitcore.ViewModelFactory
-import com.example.fitcore.WorkoutRepository
-import com.example.fitcore.WorkoutViewModel
+import androidx.navigation.compose.*
+import com.example.fitcore.domain.model.User
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     object Home : Screen("home", "Início", Icons.Default.Home)
@@ -34,21 +23,18 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
     object Profile : Screen("profile", "Perfil", Icons.Default.Person)
 }
 
-val items = listOf(
-    Screen.Home,
-    Screen.Workout,
-    Screen.Classes,
-    Screen.Profile,
-)
+val items = listOf(Screen.Home, Screen.Workout, Screen.Classes, Screen.Profile)
 
 @Composable
-fun MainScreen(userId: Int) {
+fun MainScreen(user: User) {
     val navController = rememberNavController()
+    
     Scaffold(
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
+                
                 items.forEach { screen ->
                     NavigationBarItem(
                         icon = { Icon(screen.icon, contentDescription = null) },
@@ -56,7 +42,9 @@ fun MainScreen(userId: Int) {
                         selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                         onClick = {
                             navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -69,20 +57,32 @@ fun MainScreen(userId: Int) {
         AppNavHost(
             navController = navController,
             modifier = Modifier.padding(innerPadding),
-            userId = userId
+            user = user
         )
     }
 }
 
 @Composable
-fun AppNavHost(navController: NavHostController, modifier: Modifier, userId: Int) {
-    NavHost(navController, startDestination = Screen.Home.route, modifier = modifier) {
-        composable(Screen.Home.route) { HomeScreenDashboard() }
-        composable(Screen.Workout.route) {
-            val workoutViewModel: WorkoutViewModel = viewModel(factory = ViewModelFactory { WorkoutViewModel(WorkoutRepository(), userId) })
-            WorkoutScreen(viewModel = workoutViewModel)
+fun AppNavHost(navController: NavHostController, modifier: Modifier, user: User) {
+    NavHost(
+        navController,
+        startDestination = Screen.Home.route,
+        modifier = modifier
+    ) {
+        composable(Screen.Home.route) {
+            HomeScreen(user = user) // Nova tela inicial
         }
-        composable(Screen.Classes.route) { ClassesScreen() }
-        composable(Screen.Profile.route) { ProfileScreen() }
+        
+        composable(Screen.Workout.route) {
+            WorkoutMainScreen(user = user) // Conteúdo movido da home
+        }
+        
+        composable(Screen.Classes.route) {
+            ClassesScreen()
+        }
+        
+        composable(Screen.Profile.route) {
+            ProfileScreen(user = user)
+        }
     }
 }

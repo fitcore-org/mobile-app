@@ -1,5 +1,4 @@
-package com.example.fitcore.ui.theme
-
+package com.example.fitcore.application.ui.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,16 +14,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.fitcore.LoginUiState
-import com.example.fitcore.LoginViewModel
 import com.example.fitcore.R
-
+import com.example.fitcore.application.viewmodel.LoginUiState
+import com.example.fitcore.application.viewmodel.LoginViewModel
+import com.google.gson.Gson
 @Composable
-fun LoginScreen(loginViewModel: LoginViewModel, onLoginSuccess: (Int) -> Unit) {
+fun LoginScreen(loginViewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val uiState by loginViewModel.uiState.collectAsState()
-    LaunchedEffect(key1 = uiState) { if (uiState is LoginUiState.Success) { onLoginSuccess((uiState as LoginUiState.Success).user.id) } }
+    LaunchedEffect(key1 = uiState) { if (uiState is LoginUiState.Success) { val userJson = Gson().toJson((uiState as LoginUiState.Success).user); onLoginSuccess(userJson) } }
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceAround) {
             Image(painter = painterResource(id = R.drawable.fitcore_logo), contentDescription = "FitCore Logo", modifier = Modifier.size(150.dp))
