@@ -44,7 +44,11 @@ data class QuickAction(
 )
 
 @Composable
-fun HomeScreen(user: User) {
+fun HomeScreen(
+    user: User, 
+    onNavigateToWorkoutExecution: () -> Unit = {},
+    onNavigateToExerciseLibrary: () -> Unit = {}
+) {
     val scrollState = rememberScrollState()
     
     Column(
@@ -63,13 +67,18 @@ fun HomeScreen(user: User) {
         
         Spacer(modifier = Modifier.height(24.dp))
         
+        // Botão de Treino de Peito
+        ChestWorkoutCard(onStartWorkout = onNavigateToWorkoutExecution)
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
         // Mensagem Motivacional
         MotivationalMessage()
         
         Spacer(modifier = Modifier.height(24.dp))
         
         // Cartões de Ação Rápida
-        QuickActionsSection()
+        QuickActionsSection(onNavigateToExerciseLibrary = onNavigateToExerciseLibrary)
         
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -250,8 +259,15 @@ fun MotivationalMessage() {
 }
 
 @Composable
-fun QuickActionsSection() {
+fun QuickActionsSection(onNavigateToExerciseLibrary: () -> Unit = {}) {
     val quickActions = listOf(
+        QuickAction(
+            title = "Biblioteca de Exercícios",
+            subtitle = "Aprenda novos movimentos",
+            icon = Icons.Default.MenuBook,
+            color = Color(0xFF9C27B0)
+        ) { onNavigateToExerciseLibrary() },
+        
         QuickAction(
             title = "Pagamento",
             subtitle = "Plano ativo até 25/08",
@@ -286,6 +302,89 @@ fun QuickActionsSection() {
     ) {
         quickActions.forEach { action ->
             QuickActionCard(action = action)
+        }
+    }
+}
+
+@Composable
+fun ChestWorkoutCard(onStartWorkout: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Treino de Peito",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = "4 exercícios • 45-60 min",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
+                }
+                
+                Icon(
+                    Icons.Default.FitnessCenter,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Badge(
+                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ) {
+                    Text("Iniciante", style = MaterialTheme.typography.bodySmall)
+                }
+                Badge(
+                    containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+                    contentColor = MaterialTheme.colorScheme.tertiary
+                ) {
+                    Text("Público", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Button(
+                onClick = onStartWorkout,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(
+                    Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Iniciar Treino",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         }
     }
 }

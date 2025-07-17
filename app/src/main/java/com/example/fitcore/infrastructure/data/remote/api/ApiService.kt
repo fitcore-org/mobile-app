@@ -19,6 +19,9 @@ interface ApiService {
     @GET("student/me/training-plan/current")
     suspend fun getCurrentTrainingPlan(): Response<TrainingPlanDto>
 
+    @GET("api/v1/workouts/public/enriched")
+    suspend fun getEnrichedWorkouts(): List<EnrichedWorkoutDto>
+
     @GET("workouts/{id}")
     suspend fun getWorkoutDetails(@Path("id") id: Int): WorkoutDto
 }
