@@ -70,35 +70,27 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier, user: User)
         modifier = modifier
     ) {
         composable(Screen.Home.route) {
-            HomeScreen(
-                user = user,
-                onNavigateToWorkoutExecution = {
-                    navController.navigate("workout_execution")
-                },
-                onNavigateToExerciseLibrary = {
-                    navController.navigate("exercise_library")
-                }
-            )
+            HomeScreen(user = user)
         }
-        
+
         composable(Screen.Workout.route) {
-            WorkoutMainScreen(user = user) // Conteúdo movido da home
+            WorkoutMainScreen(user = user)
         }
-        
+
         composable(Screen.Classes.route) {
             ClassesScreen()
         }
-        
+
         composable(Screen.Profile.route) {
             ProfileScreen(user = user)
         }
-        
+
         composable("workout_execution") {
             com.example.fitcore.application.ui.workout.WorkoutExecutionScreen(
                 onNavigateBack = { navController.navigateUp() }
             )
         }
-        
+
         composable("exercise_library") {
             com.example.fitcore.application.ui.exercise.ExerciseLibraryScreen(
                 onNavigateBack = { navController.navigateUp() },
@@ -107,7 +99,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier, user: User)
                 }
             )
         }
-        
+
         composable("exercise_detail/{exerciseId}") { backStackEntry ->
             val exerciseId = backStackEntry.arguments?.getString("exerciseId") ?: ""
             com.example.fitcore.application.ui.exercise.ExerciseDetailScreen(

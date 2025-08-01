@@ -1,4 +1,4 @@
-package com.example.fitcore.ui.theme
+package com.example.fitcore.application.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

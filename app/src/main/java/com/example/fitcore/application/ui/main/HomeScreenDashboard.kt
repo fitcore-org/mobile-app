@@ -27,6 +27,14 @@ import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.*
 
+/*
+ * The dashboard screen shows the user's upcoming workouts, motivational
+ * messages and quick actions. Colours and backgrounds have been updated to
+ * harmonise with the dark theme defined in Theme.kt. In particular, the
+ * QuickAction cards no longer hardcode arbitrary colours but instead derive
+ * their tints from the theme to provide a consistent look across the app.
+ */
+
 data class WeekDay(
     val dayOfWeek: String,
     val dayNumber: Int,
@@ -39,47 +47,37 @@ data class QuickAction(
     val title: String,
     val subtitle: String,
     val icon: ImageVector,
-    val color: Color,
     val onClick: () -> Unit
 )
 
 @Composable
-fun HomeScreen(
-    user: User, 
-    onNavigateToWorkoutExecution: () -> Unit = {},
-    onNavigateToExerciseLibrary: () -> Unit = {}
-) {
+fun HomeScreen(user: User) {
     val scrollState = rememberScrollState()
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        // Saudação e Motivação
+        // Greeting and motivation
         WelcomeSection(user = user)
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Ofensiva de Treinos (Dias da Semana)
+
+        // Workout streak section
         WorkoutStreakSection()
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Botão de Treino de Peito
-        ChestWorkoutCard(onStartWorkout = onNavigateToWorkoutExecution)
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Mensagem Motivacional
+
+        // Motivational message card
         MotivationalMessage()
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Cartões de Ação Rápida
-        QuickActionsSection(onNavigateToExerciseLibrary = onNavigateToExerciseLibrary)
-        
+
+        // Quick actions section
+        QuickActionsSection()
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -92,7 +90,7 @@ fun WelcomeSection(user: User) {
         currentHour < 18 -> "Boa tarde"
         else -> "Boa noite"
     }
-    
+
     Column {
         Text(
             text = "$greeting,",
@@ -111,12 +109,13 @@ fun WelcomeSection(user: User) {
 @Composable
 fun WorkoutStreakSection() {
     val weekDays = generateWeekDays()
-    
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -130,12 +129,12 @@ fun WorkoutStreakSection() {
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-                
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.LocalFireDepartment,
                         contentDescription = null,
-                        tint = Color(0xFFFF6B35),
+                        tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -147,9 +146,9 @@ fun WorkoutStreakSection() {
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -169,13 +168,13 @@ fun WeekDayItem(day: WeekDay) {
         day.isWorkoutDay -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
         else -> MaterialTheme.colorScheme.surface
     }
-    
+
     val contentColor = when {
         day.isCompleted -> MaterialTheme.colorScheme.onPrimary
         day.isToday -> MaterialTheme.colorScheme.onSecondary
         else -> MaterialTheme.colorScheme.onSurface
     }
-    
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(50.dp)
@@ -185,9 +184,9 @@ fun WeekDayItem(day: WeekDay) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
         )
-        
+
         Spacer(modifier = Modifier.height(4.dp))
-        
+
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -223,14 +222,15 @@ fun MotivationalMessage() {
         "Seu corpo agradece por cada movimento! 🏃‍♂️",
         "Transforme suor em conquista! 🏆"
     )
-    
+
     val randomMessage = remember { motivationalMessages.random() }
-    
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiaryContainer
-        )
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Box(
             modifier = Modifier
@@ -259,132 +259,39 @@ fun MotivationalMessage() {
 }
 
 @Composable
-fun QuickActionsSection(onNavigateToExerciseLibrary: () -> Unit = {}) {
+fun QuickActionsSection() {
     val quickActions = listOf(
-        QuickAction(
-            title = "Biblioteca de Exercícios",
-            subtitle = "Aprenda novos movimentos",
-            icon = Icons.Default.MenuBook,
-            color = Color(0xFF9C27B0)
-        ) { onNavigateToExerciseLibrary() },
-        
         QuickAction(
             title = "Pagamento",
             subtitle = "Plano ativo até 25/08",
-            icon = Icons.Default.CreditCard,
-            color = Color(0xFF4CAF50)
+            icon = Icons.Default.CreditCard
         ) { /* TODO: Navegar para pagamento */ },
-        
+
         QuickAction(
             title = "Check-in",
             subtitle = "Marcar presença",
-            icon = Icons.Default.LocationOn,
-            color = Color(0xFF2196F3)
+            icon = Icons.Default.LocationOn
         ) { /* TODO: Fazer check-in */ },
-        
+
         QuickAction(
             title = "Progresso",
             subtitle = "Ver evolução",
-            icon = Icons.Default.TrendingUp,
-            color = Color(0xFFFF9800)
+            icon = Icons.Default.TrendingUp
         ) { /* TODO: Ver progresso */ }
     )
-    
+
     Text(
         text = "Ações Rápidas",
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 12.dp)
     )
-    
+
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         quickActions.forEach { action ->
             QuickActionCard(action = action)
-        }
-    }
-}
-
-@Composable
-fun ChestWorkoutCard(onStartWorkout: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Treino de Peito",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Text(
-                        text = "4 exercícios • 45-60 min",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                    )
-                }
-                
-                Icon(
-                    Icons.Default.FitnessCenter,
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Badge(
-                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.secondary
-                ) {
-                    Text("Iniciante", style = MaterialTheme.typography.bodySmall)
-                }
-                Badge(
-                    containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.tertiary
-                ) {
-                    Text("Público", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Button(
-                onClick = onStartWorkout,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Iniciar Treino",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
         }
     }
 }
@@ -397,8 +304,9 @@ fun QuickActionCard(action: QuickAction) {
             .height(80.dp),
         onClick = action.onClick,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
         ),
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -407,23 +315,26 @@ fun QuickActionCard(action: QuickAction) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Icon container uses theme primary colour for its tint instead of arbitrary colours
+            val iconBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            val iconTint = MaterialTheme.colorScheme.primary
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(action.color.copy(alpha = 0.1f)),
+                    .background(iconBackground),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     action.icon,
                     contentDescription = action.title,
-                    tint = action.color,
+                    tint = iconTint,
                     modifier = Modifier.size(24.dp)
                 )
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column {
                 Text(
                     text = action.title,
@@ -437,9 +348,9 @@ fun QuickActionCard(action: QuickAction) {
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
-            
+
             Spacer(modifier = Modifier.weight(1f))
-            
+
             Icon(
                 Icons.Default.ChevronRight,
                 contentDescription = "Ir para ${action.title}",
@@ -449,11 +360,10 @@ fun QuickActionCard(action: QuickAction) {
     }
 }
 
-// Função auxiliar para gerar os dias da semana
+// Helper function to generate week days for the streak section
 private fun generateWeekDays(): List<WeekDay> {
     val today = LocalDate.now()
     val startOfWeek = today.with(java.time.DayOfWeek.MONDAY)
-    
     return (0..6).map { dayOffset ->
         val date = startOfWeek.plusDays(dayOffset.toLong())
         WeekDay(

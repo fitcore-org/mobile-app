@@ -14,7 +14,7 @@ import com.example.fitcore.application.ui.login.LoginScreen
 import com.example.fitcore.application.ui.main.MainScreen
 import com.example.fitcore.application.viewmodel.LoginViewModel
 import com.example.fitcore.domain.model.User
-import com.example.fitcore.ui.theme.FitcoreTheme
+import com.example.fitcore.application.ui.theme.FitcoreTheme
 import com.google.gson.Gson
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
