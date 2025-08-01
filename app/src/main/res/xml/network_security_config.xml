@@ -2,5 +2,10 @@
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">jsonplaceholder.typicode.com</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">192.168.0.9</domain>
     </domain-config>
+    <!-- Para permitir todas as portas no IP local durante desenvolvimento -->
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>
