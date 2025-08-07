@@ -1,0 +1,114 @@
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+
+
+@Composable
+fun CardRegistrationScreen(
+    navController: NavHostController,
+    viewModel: CardRegistrationViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Cadastrar Cartão", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0a0a0a))
+            )
+        },
+        containerColor = Color(0xFF0a0a0a)
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            OutlinedTextField(
+                value = uiState.number,
+                onValueChange = viewModel::onNumberChange,
+                label = { Text("Número do cartão") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlinedTextFieldColors()
+            )
+
+            OutlinedTextField(
+                value = uiState.holderName,
+                onValueChange = viewModel::onHolderNameChange,
+                label = { Text("Nome do titular") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlinedTextFieldColors()
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = uiState.expMonth,
+                    onValueChange = viewModel::onExpMonthChange,
+                    label = { Text("Mês") },
+                    modifier = Modifier.weight(1f),
+                    colors = outlinedTextFieldColors()
+                )
+                OutlinedTextField(
+                    value = uiState.expYear,
+                    onValueChange = viewModel::onExpYearChange,
+                    label = { Text("Ano") },
+                    modifier = Modifier.weight(1f),
+                    colors = outlinedTextFieldColors()
+                )
+            }
+
+            OutlinedTextField(
+                value = uiState.cvv,
+                onValueChange = viewModel::onCvvChange,
+                label = { Text("CVV") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlinedTextFieldColors()
+            )
+
+            OutlinedTextField(
+                value = uiState.label,
+                onValueChange = viewModel::onLabelChange,
+                label = { Text("Nome do cartão (opcional)") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlinedTextFieldColors()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    viewModel.submitCard(
+                        onSuccess = { navController.navigate("card_success") },
+                        onError = { message ->
+                            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                        }
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF22c55e))
+            ) {
+                Text("Cadastrar")
+            }
+        }
+    }
+}
