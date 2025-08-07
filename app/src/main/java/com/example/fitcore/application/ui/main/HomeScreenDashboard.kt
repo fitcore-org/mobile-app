@@ -1,9 +1,8 @@
 package com.example.fitcore.application.ui.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,73 +17,97 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fitcore.domain.model.User
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.TextStyle
 import java.util.*
 
-/*
- * The dashboard screen shows the user's upcoming workouts, motivational
- * messages and quick actions. Colours and backgrounds have been updated to
- * harmonise with the dark theme defined in Theme.kt. In particular, the
- * QuickAction cards no longer hardcode arbitrary colours but instead derive
- * their tints from the theme to provide a consistent look across the app.
+/**
+ * Tela principal (Dashboard) que exibe uma saudação ao usuário, sua foto de perfil,
+ * um calendário simples, treino sugerido, uma mensagem motivacional e ações rápidas.
  */
-
-data class WeekDay(
-    val dayOfWeek: String,
-    val dayNumber: Int,
-    val isToday: Boolean,
-    val isWorkoutDay: Boolean,
-    val isCompleted: Boolean
-)
 
 data class QuickAction(
     val title: String,
     val subtitle: String,
     val icon: ImageVector,
+    val color: Color,
     val onClick: () -> Unit
 )
 
 @Composable
-fun HomeScreen(user: User) {
+fun HomeScreen(
+    user: User,
+    onNavigateToWorkoutExecution: () -> Unit = {},
+    onNavigateToExerciseLibrary: () -> Unit = {}
+) {
     val scrollState = rememberScrollState()
 
+    // O degradê é aplicado no Column principal, que serve como container para toda a tela.
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.colorScheme.background
+                    )
+                )
+            )
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        // Greeting and motivation
-        WelcomeSection(user = user)
+        // Saudação com foto de perfil
+        GreetingProfileSection(user = user)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Workout streak section
-        WorkoutStreakSection()
+        // Calendário Simples
+        SimpleCalendarSection()
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Motivational message card
+        // Card de Treino Sugerido - Agora com maior destaque
+        ChestWorkoutCard(onStartWorkout = onNavigateToWorkoutExecution)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Mensagem Motivacional
         MotivationalMessage()
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Quick actions section
-        QuickActionsSection()
+        // Cartões de Ação Rápida
+        QuickActionsSection(onNavigateToExerciseLibrary = onNavigateToExerciseLibrary)
 
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
-fun WelcomeSection(user: User) {
-    val currentHour = java.time.LocalTime.now().hour
+fun GreetingProfileSection(user: User) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        WelcomeText(user = user)
+        ProfilePicture(profileUrl = "https://placehold.co/100x100/E0E0E0/333?text=Foto")
+    }
+}
+
+@Composable
+fun WelcomeText(user: User) {
+    val currentHour = LocalTime.now().hour
     val greeting = when {
         currentHour < 12 -> "Bom dia"
         currentHour < 18 -> "Boa tarde"
@@ -107,106 +130,149 @@ fun WelcomeSection(user: User) {
 }
 
 @Composable
-fun WorkoutStreakSection() {
-    val weekDays = generateWeekDays()
+fun ProfilePicture(profileUrl: String) {
+    AsyncImage(
+        model = profileUrl,
+        contentDescription = "Foto de perfil",
+        modifier = Modifier
+            .size(72.dp)
+            .clip(CircleShape)
+            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
+        contentScale = ContentScale.Crop,
+        placeholder = rememberVectorPainter(image = Icons.Default.Person),
+        error = rememberVectorPainter(image = Icons.Default.Person)
+    )
+}
+
+@Composable
+fun SimpleCalendarSection() {
+    val today = LocalDate.now()
+    val locale = Locale("pt", "BR")
+    val dayOfWeek = today.dayOfWeek.getDisplayName(TextStyle.FULL, locale)
+        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+    val dayOfMonth = today.dayOfMonth
+    val month = today.month.getDisplayName(TextStyle.FULL, locale)
+
+    val dateText = "$dayOfWeek, $dayOfMonth de $month"
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Ofensiva de Treinos",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.LocalFireDepartment,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "3 dias",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(weekDays) { day ->
-                    WeekDayItem(day = day)
-                }
-            }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.CalendarToday,
+                contentDescription = "Calendário",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = dateText,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
 
 @Composable
-fun WeekDayItem(day: WeekDay) {
-    val backgroundColor = when {
-        day.isCompleted -> MaterialTheme.colorScheme.primary
-        day.isToday -> MaterialTheme.colorScheme.secondary
-        day.isWorkoutDay -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-        else -> MaterialTheme.colorScheme.surface
-    }
-
-    val contentColor = when {
-        day.isCompleted -> MaterialTheme.colorScheme.onPrimary
-        day.isToday -> MaterialTheme.colorScheme.onSecondary
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(50.dp)
+fun ChestWorkoutCard(onStartWorkout: () -> Unit) {
+    // SUGESTÃO 1: Card de Ação Principal com maior destaque visual.
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Text(
-            text = day.dayOfWeek,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(backgroundColor),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier.padding(20.dp)
         ) {
-            if (day.isCompleted) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Treino de Peito",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Text(
+                        text = "4 exercícios • 45-60 min",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                    )
+                }
+
                 Icon(
-                    Icons.Default.Check,
-                    contentDescription = "Treino concluído",
-                    tint = contentColor,
+                    Icons.Default.FitnessCenter,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // SUGESTÃO 2: Indicador de progresso para engajamento.
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Progresso do Treino",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = "50%",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                LinearProgressIndicator(
+                    progress = 0.5f, // Valor mockado
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = onStartWorkout,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onPrimary,
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(
+                    Icons.Default.PlayArrow,
+                    contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )
-            } else {
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = day.dayNumber.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = contentColor
+                    text = "Continuar Treino",
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         }
@@ -228,21 +294,13 @@ fun MotivationalMessage() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.tertiaryContainer,
-                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f)
-                        )
-                    )
-                )
                 .padding(20.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -251,7 +309,7 @@ fun MotivationalMessage() {
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
                 lineHeight = 24.sp
             )
         }
@@ -259,25 +317,23 @@ fun MotivationalMessage() {
 }
 
 @Composable
-fun QuickActionsSection() {
+fun QuickActionsSection(onNavigateToExerciseLibrary: () -> Unit = {}) {
+    // SUGESTÃO 3: Cores das ações unificadas com o tema.
     val quickActions = listOf(
+        QuickAction(
+            title = "Biblioteca",
+            subtitle = "Aprenda novos movimentos",
+            icon = Icons.Default.MenuBook,
+            color = MaterialTheme.colorScheme.secondary,
+            onClick = onNavigateToExerciseLibrary
+        ),
         QuickAction(
             title = "Pagamento",
             subtitle = "Plano ativo até 25/08",
-            icon = Icons.Default.CreditCard
-        ) { /* TODO: Navegar para pagamento */ },
-
-        QuickAction(
-            title = "Check-in",
-            subtitle = "Marcar presença",
-            icon = Icons.Default.LocationOn
-        ) { /* TODO: Fazer check-in */ },
-
-        QuickAction(
-            title = "Progresso",
-            subtitle = "Ver evolução",
-            icon = Icons.Default.TrendingUp
-        ) { /* TODO: Ver progresso */ }
+            icon = Icons.Default.CreditCard,
+            color = Color(0xFF4CAF50), // Verde mantido para status de "sucesso"
+            onClick = { /* TODO: Navegar para pagamento */ }
+        )
     )
 
     Text(
@@ -304,38 +360,34 @@ fun QuickActionCard(action: QuickAction) {
             .height(80.dp),
         onClick = action.onClick,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon container uses theme primary colour for its tint instead of arbitrary colours
-            val iconBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            val iconTint = MaterialTheme.colorScheme.primary
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(iconBackground),
+                    .background(action.color.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     action.icon,
                     contentDescription = action.title,
-                    tint = iconTint,
+                    tint = action.color,
                     modifier = Modifier.size(24.dp)
                 )
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = action.title,
                     style = MaterialTheme.typography.titleMedium,
@@ -349,29 +401,11 @@ fun QuickActionCard(action: QuickAction) {
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
             Icon(
                 Icons.Default.ChevronRight,
                 contentDescription = "Ir para ${action.title}",
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )
         }
-    }
-}
-
-// Helper function to generate week days for the streak section
-private fun generateWeekDays(): List<WeekDay> {
-    val today = LocalDate.now()
-    val startOfWeek = today.with(java.time.DayOfWeek.MONDAY)
-    return (0..6).map { dayOffset ->
-        val date = startOfWeek.plusDays(dayOffset.toLong())
-        WeekDay(
-            dayOfWeek = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
-            dayNumber = date.dayOfMonth,
-            isToday = date == today,
-            isWorkoutDay = listOf(1, 3, 5).contains(date.dayOfWeek.value), // Seg, Qua, Sex
-            isCompleted = date.isBefore(today) && listOf(1, 3, 5).contains(date.dayOfWeek.value)
-        )
     }
 }
