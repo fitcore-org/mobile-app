@@ -1,35 +1,36 @@
-package com.example.fitcore.ui.theme
+package com.example.fitcore.application.ui.theme
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Sua nova paleta de cores
-private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFFFF8F3),      // SEASHELL - Para textos e elementos principais
-    secondary = Color(0xFF7B896F),    // RESEDA GREEN - Para textos secundários
-    background = Color(0xFF1F3A26),   // DARK GREEN - Fundo principal
-    surface = Color(0xFF0D0F0D),      // NIGHT BLACK - Cor para o cartão de login
-    onPrimary = Color(0xFF0D0F0D),    // NIGHT BLACK - Texto em cima de botões brancos
-    onSecondary = Color(0xFFFFF8F3),  // SEASHELL
-    onBackground = Color(0xFFFFF8F3), // SEASHELL - Texto no fundo principal
-    onSurface = Color(0xFFFFF8F3),    // SEASHELL - Texto nos cartões
-    error = Color(0xFFCF6679)         // Cor de erro padrão para temas escuros
+// Sua nova paleta aplicada ao ColorScheme do Material 3
+private val AppColorScheme = darkColorScheme(
+    primary = FitCoreGreen,
+    onPrimary = FitCoreWhite,
+    secondary = FitCoreGreenLight,
+    background = FitCoreBackground,
+    surface = FitCoreSurface,
+    onSurface = FitCoreWhite,
+    onBackground = FitCoreWhite,
+    error = FitCoreRed,
+    onError = FitCoreWhite
+    /* Outras cores podem ser definidas aqui se necessário */
 )
 
 @Composable
 fun FitcoreTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = true, // Forçando o tema escuro, pois sua paleta é escura
     content: @Composable () -> Unit
 ) {
-    val colorScheme = DarkColorScheme
+    val colorScheme = AppColorScheme // Usamos nosso esquema de cores definido acima
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -38,9 +39,10 @@ fun FitcoreTheme(
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
+
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Usa a nova tipografia Montserrat
+        typography = Typography,
         content = content
     )
 }

@@ -1,8 +1,8 @@
 package com.example.fitcore.application.ui.exercise
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -10,20 +10,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.example.fitcore.application.di.ViewModelFactoryProvider
 import com.example.fitcore.application.ui.components.ExerciseAnimationImages
-import com.example.fitcore.application.viewmodel.ExerciseLibraryViewModel
 import com.example.fitcore.application.viewmodel.ExerciseLibraryUiState
+import com.example.fitcore.application.viewmodel.ExerciseLibraryViewModel
 import com.example.fitcore.domain.model.Exercise
 import com.example.fitcore.domain.model.MuscleGroup
+
+// 1. Gradiente definido no topo do arquivo para ser reutilizado
+private val gradientBrush = Brush.linearGradient(
+    colors = listOf(
+        Color(0xFF0a0a0a),
+        Color(0xFF1a1a1a),
+        Color(0xFF2d4a35),
+        Color(0xFF1f3a26),
+        Color(0xFF0d0f0d)
+    )
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,48 +45,47 @@ fun ExerciseDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var exercise by remember { mutableStateOf<Exercise?>(null) }
-    
+
     LaunchedEffect(exerciseId) {
         viewModel.loadExercises()
     }
-    
+
     LaunchedEffect(uiState) {
-        when (val currentState = uiState) {
-            is ExerciseLibraryUiState.Success -> {
-                exercise = currentState.exercises.find { it.id == exerciseId }
-            }
-            else -> { /* outros estados */ }
+        if (uiState is ExerciseLibraryUiState.Success) {
+            exercise = (uiState as ExerciseLibraryUiState.Success).exercises.find { it.id == exerciseId }
         }
     }
-    
+
     exercise?.let { currentExercise ->
         ExerciseDetailContent(
             exercise = currentExercise,
             onNavigateBack = onNavigateBack
         )
     } ?: run {
-        // Loading ou erro
+        // Estado de Loading ou Erro com fundo gradiente
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(gradientBrush), // Fundo aplicado aqui
             contentAlignment = Alignment.Center
         ) {
             when (uiState) {
                 is ExerciseLibraryUiState.Loading -> {
-                    CircularProgressIndicator(color = Color(0xFF6366F1))
+                    CircularProgressIndicator(color = Color.White)
                 }
                 is ExerciseLibraryUiState.Error -> {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text("Erro ao carregar exercício")
+                        Text("Erro ao carregar exercício", color = Color.White)
                         Button(onClick = onNavigateBack) {
                             Text("Voltar")
                         }
                     }
                 }
                 else -> {
-                    Text("Exercício não encontrado")
+                    Text("Exercício não encontrado", color = Color.White)
                 }
             }
         }
@@ -91,18 +99,21 @@ private fun ExerciseDetailContent(
     onNavigateBack: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    
+
+    // 2. Fundo aplicado à tela inteira
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(gradientBrush)
     ) {
-        // Top Bar
+        // Top Bar com cores ajustadas
         TopAppBar(
-            title = { 
+            title = {
                 Text(
                     exercise.name,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
-                ) 
+                )
             },
             navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
@@ -110,11 +121,12 @@ private fun ExerciseDetailContent(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                titleContentColor = MaterialTheme.colorScheme.onSurface
+                containerColor = Color.Transparent,
+                titleContentColor = Color.White,
+                navigationIconContentColor = Color.White
             )
         )
-        
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -122,13 +134,13 @@ private fun ExerciseDetailContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Animação do exercício
+            // Animação do exercício (Card com cor ajustada)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(300.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = Color.Black.copy(alpha = 0.2f)
                 )
             ) {
                 if (exercise.mediaUrl != null && exercise.mediaUrl2 != null) {
@@ -150,25 +162,21 @@ private fun ExerciseDetailContent(
                                 Icons.Default.Image,
                                 contentDescription = null,
                                 modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                tint = Color.White.copy(alpha = 0.6f)
                             )
                             Text(
                                 text = "Imagem não disponível",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                color = Color.White.copy(alpha = 0.6f)
                             )
                         }
                     }
                 }
             }
-            
-            // Informações básicas
+
+            // Seções de informação com cores ajustadas
             ExerciseInfoSection(exercise = exercise)
-            
-            // Descrição
             ExerciseDescriptionSection(description = exercise.description)
-            
-            // Dicas de segurança
             SafetyTipsSection()
         }
     }
@@ -179,9 +187,8 @@ fun ExerciseInfoSection(exercise: Exercise) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            containerColor = Color.White.copy(alpha = 0.1f)
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -190,25 +197,25 @@ fun ExerciseInfoSection(exercise: Exercise) {
             Text(
                 text = "Informações do Exercício",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
                 InfoItem(
                     icon = Icons.Default.FitnessCenter,
                     label = "Grupo Muscular",
                     value = MuscleGroup.fromApiValue(exercise.muscleGroup).displayName,
-                    color = Color(0xFF10B981)
+                    color = Color(0xFF10B981) // Verde vibrante
                 )
-                
                 InfoItem(
                     icon = Icons.Default.Build,
                     label = "Equipamento",
                     value = exercise.equipment,
-                    color = Color(0xFF6366F1)
+                    color = Color(0xFF6366F1) // Roxo vibrante
                 )
             }
         }
@@ -223,7 +230,8 @@ fun InfoItem(
     color: Color
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(120.dp)
     ) {
         Icon(
             icon,
@@ -236,12 +244,13 @@ fun InfoItem(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = Color.White // Ajustado
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            color = Color.White.copy(alpha = 0.7f), // Ajustado
             textAlign = TextAlign.Center
         )
     }
@@ -252,9 +261,8 @@ fun ExerciseDescriptionSection(description: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            containerColor = Color.White.copy(alpha = 0.1f)
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -263,14 +271,14 @@ fun ExerciseDescriptionSection(description: String) {
                 text = "Como Executar",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
+                color = Color.White
             )
-            
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
                 lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.4,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+                color = Color.White.copy(alpha = 0.9f)
             )
         }
     }
@@ -281,9 +289,9 @@ fun SafetyTipsSection() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFF3E0) // Laranja claro
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            // Cor do card de aviso ajustada para o tema
+            containerColor = Color(0xFFE65100).copy(alpha = 0.15f)
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -295,7 +303,7 @@ fun SafetyTipsSection() {
                 Icon(
                     Icons.Default.Warning,
                     contentDescription = null,
-                    tint = Color(0xFFE65100),
+                    tint = Color(0xFFE65100), // Laranja
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -303,10 +311,9 @@ fun SafetyTipsSection() {
                     text = "Dicas de Segurança",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFE65100)
+                    color = Color(0xFFE65100) // Laranja
                 )
             }
-            
             val safetyTips = listOf(
                 "Sempre aqueça antes de começar",
                 "Mantenha uma postura adequada",
@@ -314,7 +321,6 @@ fun SafetyTipsSection() {
                 "Pare se sentir dor ou desconforto",
                 "Comece com pesos leves e aumente gradualmente"
             )
-            
             safetyTips.forEach { tip ->
                 Row(
                     modifier = Modifier.padding(vertical = 2.dp)
@@ -327,7 +333,7 @@ fun SafetyTipsSection() {
                     Text(
                         text = tip,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFFE65100).copy(alpha = 0.8f)
+                        color = Color(0xFFE65100).copy(alpha = 0.9f)
                     )
                 }
             }
