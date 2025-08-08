@@ -9,7 +9,7 @@ class PersonalizedWorkoutRepositoryAdapter : PersonalizedWorkoutRepositoryPort {
     override suspend fun getPersonalizedWorkouts(studentId: String): List<PersonalizedWorkout> {
         return try {
             println("🌐 Buscando treinos personalizados para o estudante: $studentId")
-            val workouts = RetrofitInstance.api.getPersonalizedWorkouts(studentId)
+            val workouts = RetrofitInstance.personalizedWorkoutApi.getPersonalizedWorkouts(studentId)
             println("📨 Total de treinos personalizados recebidos: ${workouts.size}")
             workouts.map { it.toDomain() }
         } catch (e: Exception) {

@@ -7,10 +7,18 @@ object RetrofitInstance {
     // Usando 10.0.2.2 para conectar ao localhost do host via emulador Android
     private const val BASE_URL = "http://10.0.2.2:8080/"
     
-    // URL específica para o serviço de exercícios na porta 8082
+    // URL específica para o serviço de exercícios e treinos na porta 8082
     private const val EXERCISE_SERVICE_URL = "http://10.0.2.2:8082/"
 
     private const val STUDENT_SERVICE_URL = "http://10.0.2.2:8081/"
+
+    val personalizedWorkoutApi: PersonalizedWorkoutApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(EXERCISE_SERVICE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(PersonalizedWorkoutApiService::class.java)
+    }
 
     val studentApi: StudentApi by lazy {
         Retrofit.Builder()

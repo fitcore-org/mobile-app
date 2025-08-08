@@ -19,9 +19,6 @@ interface ApiService {
     @GET("api/v1/workouts/public/enriched")
     suspend fun getEnrichedWorkouts(): List<EnrichedWorkoutDto>
 
-    @GET("api/v1/workouts/student/{studentId}")
-    suspend fun getPersonalizedWorkouts(@Path("studentId") studentId: String): List<PersonalizedWorkoutDto>
-
     @GET("workouts/{id}")
     suspend fun getWorkoutDetails(@Path("id") id: Int): WorkoutDto
 }
