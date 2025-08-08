@@ -10,8 +10,8 @@ interface ApiService {
     @GET("users/{userId}")
     suspend fun getUser(@Path("userId") id: Int): UserDto
 
-    @GET("posts")
-    suspend fun getPostsForUser(@Query("userId") userId: Int): List<WorkoutDto>
+    @GET("api/v1/workouts/student/{userId}")
+    suspend fun getPostsForUser(@Path("userId") userId: String): List<WorkoutDto>
 
     @GET("student/me/training-plan/current")
     suspend fun getCurrentTrainingPlan(): Response<TrainingPlanDto>

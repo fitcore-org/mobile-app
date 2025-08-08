@@ -30,35 +30,8 @@ fun WorkoutMainScreen(
     user: User,
     onNavigateToWorkoutExecution: () -> Unit = {}
 ) {
-    val userId = user.id.toIntOrNull()
-    
-    if (userId == null) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Erro ao carregar treinos",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.error,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "ID do usuário inválido. Por favor, faça login novamente.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center
-            )
-        }
-        return
-    }
-
     val workoutViewModel: WorkoutViewModel = viewModel(
-        factory = ViewModelFactoryProvider.provideWorkoutViewModelFactory(userId)
+        factory = ViewModelFactoryProvider.provideWorkoutViewModelFactory(user.id)
     )
     val workoutState by workoutViewModel.uiState.collectAsState()
 

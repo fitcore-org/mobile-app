@@ -22,7 +22,7 @@ sealed class WorkoutUiState {
 class WorkoutViewModel(
     private val getUserWorkoutsUseCase: GetUserWorkoutsUseCase,
     private val getPersonalizedWorkoutsUseCase: GetPersonalizedWorkoutsUseCase,
-    private val userId: Int
+    private val userId: String
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<WorkoutUiState>(WorkoutUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -36,7 +36,7 @@ class WorkoutViewModel(
             _uiState.value = WorkoutUiState.Loading
             try {
                 val publicWorkouts = getUserWorkoutsUseCase(userId)
-                val personalizedWorkouts = getPersonalizedWorkoutsUseCase(userId.toString())
+                val personalizedWorkouts = getPersonalizedWorkoutsUseCase(userId)
                 
                 if (publicWorkouts.isNotEmpty() || personalizedWorkouts.isNotEmpty()) {
                     _uiState.value = WorkoutUiState.Success(
