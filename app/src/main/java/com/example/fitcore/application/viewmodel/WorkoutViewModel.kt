@@ -35,8 +35,8 @@ class WorkoutViewModel(
         viewModelScope.launch {
             _uiState.value = WorkoutUiState.Loading
             try {
-                val publicWorkouts = getUserWorkoutsUseCase(userId)
                 val personalizedWorkouts = getPersonalizedWorkoutsUseCase(userId)
+                val publicWorkouts = getUserWorkoutsUseCase(userId)
                 
                 if (publicWorkouts.isNotEmpty() || personalizedWorkouts.isNotEmpty()) {
                     _uiState.value = WorkoutUiState.Success(
