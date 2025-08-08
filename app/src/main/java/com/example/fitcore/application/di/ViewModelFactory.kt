@@ -15,7 +15,8 @@ import com.example.fitcore.domain.usecase.*
 import com.example.fitcore.infrastructure.data.remote.adapter.*
 
 object ViewModelFactoryProvider {
-
+    private val personalizedWorkoutRepository by lazy { PersonalizedWorkoutRepositoryAdapter() }
+    private val getPersonalizedWorkoutsUseCase by lazy { GetPersonalizedWorkoutsUseCase(personalizedWorkoutRepository) }
     // --- INSTÂNCIA ÚNICA DOS REPOSITÓRIOS ---
     private val authRepository: AuthRepositoryPort by lazy { AuthRepositoryAdapter() }
     private val studentRepository: StudentRepositoryPort by lazy { StudentRepositoryAdapter() }
@@ -93,12 +94,16 @@ object ViewModelFactoryProvider {
 
     fun provideWorkoutViewModelFactory(userId: Int): ViewModelProvider.Factory {
         return object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(WorkoutViewModel::class.java)) {
-                    return WorkoutViewModel(getUserWorkoutsUseCase, userId) as T
+                    @Suppress("UNCHECKED_CAST")
+                    return WorkoutViewModel(
+                        getUserWorkoutsUseCase,
+                        getPersonalizedWorkoutsUseCase,
+                        userId
+                    ) as T
                 }
-                throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
+                throw IllegalArgumentException("Unknown ViewModel class")
             }
         }
     }
