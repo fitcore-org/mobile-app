@@ -21,20 +21,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitcore.application.di.ViewModelFactoryProvider
 import com.example.fitcore.application.state.WorkoutSelectionManager
-import com.example.fitcore.application.viewmodel.PublicWorkoutUiState
-import com.example.fitcore.application.viewmodel.PublicWorkoutViewModel
-import com.example.fitcore.domain.model.PublicWorkout
-import com.example.fitcore.domain.model.User
+import com.example.fitcore.application.viewmodel.WorkoutViewModel
+import com.example.fitcore.application.viewmodel.WorkoutUiState
+import com.example.fitcore.domain.model.*
 
 @Composable
 fun WorkoutMainScreen(
     user: User,
     onNavigateToWorkoutExecution: () -> Unit = {}
 ) {
-    val publicWorkoutViewModel: PublicWorkoutViewModel = viewModel(
-        factory = ViewModelFactoryProvider.providePublicWorkoutViewModelFactory()
+    val workoutViewModel: WorkoutViewModel = viewModel(
+        factory = ViewModelFactoryProvider.provideWorkoutViewModelFactory(user.id.toInt())
     )
-    val publicWorkoutState by publicWorkoutViewModel.uiState.collectAsState()
+    val workoutState by workoutViewModel.uiState.collectAsState()
 
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(
@@ -59,8 +58,8 @@ fun WorkoutMainScreen(
             color = Color.White
         )
 
-        PublicWorkoutsList(
-            publicWorkoutState = publicWorkoutState,
+        WorkoutList(
+            workoutState = workoutState,
             onWorkoutClick = { workout ->
                 WorkoutSelectionManager.setSelectedWorkout(workout)
                 onNavigateToWorkoutExecution()
@@ -70,33 +69,60 @@ fun WorkoutMainScreen(
 }
 
 @Composable
-fun PublicWorkoutsList(
-    publicWorkoutState: PublicWorkoutUiState,
+fun WorkoutList(
+    workoutState: WorkoutUiState,
     onWorkoutClick: (PublicWorkout) -> Unit
 ) {
-    when (val state = publicWorkoutState) {
-        is PublicWorkoutUiState.Loading -> {
+    when (val state = workoutState) {
+        is WorkoutUiState.Loading -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF4ade80)) // Cor neon
+                CircularProgressIndicator(color = Color(0xFF4ade80))
             }
         }
-        is PublicWorkoutUiState.Success -> {
+        is WorkoutUiState.Success -> {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp) // Espaçamento maior
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(state.workouts) { workout ->
-                    PublicWorkoutCard(
-                        workout = workout,
-                        onClick = { onWorkoutClick(workout) }
+                if (state.personalizedWorkouts.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Seus Treinos Personalizados",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                    items(state.personalizedWorkouts) { workout ->
+                        WorkoutCard(
+                            workout = workout.toPublicWorkout(),
+                            onClick = { onWorkoutClick(workout.toPublicWorkout()) }
+                        )
+                    }
+                }
+
+                item {
+                    Text(
+                        text = "Treinos Disponíveis",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                items(state.publicWorkouts) { workout ->
+                    WorkoutCard(
+                        workout = workout.toPublicWorkout(),
+                        onClick = { onWorkoutClick(workout.toPublicWorkout()) }
                     )
                 }
             }
         }
-        is PublicWorkoutUiState.Error -> {
+        is WorkoutUiState.Error -> {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -112,7 +138,7 @@ fun PublicWorkoutsList(
 }
 
 @Composable
-fun PublicWorkoutCard(
+fun WorkoutCard(
     workout: PublicWorkout,
     onClick: () -> Unit
 ) {
@@ -134,7 +160,6 @@ fun PublicWorkoutCard(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Coluna com as informações do treino
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -143,34 +168,31 @@ fun PublicWorkoutCard(
                     text = workout.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = neonGreenColor // Cor neon
+                    color = neonGreenColor
                 )
                 Text(
                     text = workout.description,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = lightGrayColor // Cinza claro
+                    color = lightGrayColor
                 )
-                Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "${workout.exerciseCount} exercícios",
+                        text = "${workout.items.size} exercícios",
                         style = MaterialTheme.typography.bodySmall,
                         color = lightGrayColor
                     )
                     Text(
-                        text = workout.estimatedDuration,
+                        text = estimateWorkoutDuration(workout),
                         style = MaterialTheme.typography.bodySmall,
                         color = lightGrayColor
                     )
                 }
             }
-            // Ícone de "Play" para indicar ação
-            Spacer(modifier = Modifier.width(16.dp))
             Icon(
                 imageVector = Icons.Filled.PlayCircle,
                 contentDescription = "Iniciar Treino",
