@@ -8,7 +8,12 @@ import com.example.fitcore.infrastructure.data.remote.mapper.toDomain
 class WorkoutRepositoryAdapter : WorkoutRepositoryPort {
     override suspend fun getWorkoutsForUser(userId: String): List<Workout> {
         return try {
-            RetrofitInstance.api.getPostsForUser(userId).map { it.toDomain() }
+            // Busca treinos personalizados do usuário
+            val personalizedWorkouts = RetrofitInstance.api.getPostsForUser(userId).map { it.toDomain() }
+            // Busca treinos públicos
+            val publicWorkouts = RetrofitInstance.api.getPublicWorkouts().map { it.toDomain() }
+            // Combina os dois tipos de treinos
+            personalizedWorkouts + publicWorkouts
         } catch (e: Exception) {
             emptyList()
         }
