@@ -18,6 +18,7 @@ object ExerciseMapper {
     
     private fun convertUrl(url: String?): String? {
         // Converte localhost para o IP que o emulador pode acessar
+        // MinIO está rodando na porta 9000
         return url?.replace("localhost", "10.0.2.2")
     }
 }

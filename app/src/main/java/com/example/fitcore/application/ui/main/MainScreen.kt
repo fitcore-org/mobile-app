@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
@@ -41,7 +40,10 @@ fun MainScreen(user: User) {
     Scaffold(
         bottomBar = {
             GlassBottomBar(navController = navController)
-        }
+        },
+        // Adiciona uma cor de fundo ao Scaffold para evitar que o conteúdo
+        // da tela apareça atrás da bottom bar transparente
+        containerColor = Color(0xFF0A0A0A)
     ) { innerPadding ->
         AppNavHost(
             navController = navController,
@@ -117,7 +119,9 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier, user: User)
     ) {
         composable(Screen.Home.route) {
             HomeScreen(
-                user = user,
+                // <-- CORREÇÃO FINAL AQUI
+                // O parâmetro agora se chama 'initialUser'
+                initialUser = user,
                 onNavigateToWorkoutExecution = {
                     navController.navigate("workout_execution")
                 },
@@ -128,22 +132,35 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier, user: User)
         }
 
         composable(Screen.Workout.route) {
-            WorkoutMainScreen(user = user)
+            // Se WorkoutMainScreen também precisar dos dados atualizados,
+            // você precisará aplicar a mesma lógica de ViewModel nela.
+            WorkoutMainScreen(
+                user = user,
+                onNavigateToWorkoutExecution = {
+                    navController.navigate("public_workout_execution")
+                }
+            )
         }
 
         composable(Screen.Card.route) {
-            CardScreen(navController = navController) 
+            CardScreen(navController = navController)
         }
         composable("add_card") {
             AddCardScreen(navController = navController)
         }
 
-       composable(Screen.Profile.route) {
+        composable(Screen.Profile.route) {
             ProfileScreen(user = user)
-        }   
+        }
 
         composable("workout_execution") {
             com.example.fitcore.application.ui.workout.WorkoutExecutionScreen(
+                onNavigateBack = { navController.navigateUp() }
+            )
+        }
+
+        composable("public_workout_execution") {
+            com.example.fitcore.application.ui.workout.PublicWorkoutExecutionFromDataScreen(
                 onNavigateBack = { navController.navigateUp() }
             )
         }

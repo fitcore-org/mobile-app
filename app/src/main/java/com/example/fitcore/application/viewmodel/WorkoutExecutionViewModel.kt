@@ -32,6 +32,77 @@ class WorkoutExecutionViewModel(
     init {
         loadChestWorkout()
     }
+    
+    private fun loadTestWorkout() {
+        println("🧪 Carregando treino simulado para teste de imagens...")
+        viewModelScope.launch {
+            try {
+                // Criar dados simulados
+                val testWorkout = createTestWorkout()
+                currentSession = WorkoutSession(
+                    workout = testWorkout,
+                    state = WorkoutSessionState.PREPARATION,
+                    timeRemaining = 10
+                )
+                _uiState.value = WorkoutExecutionUiState.Success(currentSession!!)
+                startTimer()
+            } catch (e: Exception) {
+                println("💥 Erro ao criar treino simulado: ${e.message}")
+                _uiState.value = WorkoutExecutionUiState.Error("Erro ao criar treino simulado: ${e.message}")
+            }
+        }
+    }
+    
+    private fun createTestWorkout(): EnrichedWorkout {
+        val testExercise1 = com.example.fitcore.domain.model.Exercise(
+            id = "test1",
+            name = "Supino Reto com Barra",
+            description = "Exercício fundamental para desenvolvimento do peitoral maior.",
+            muscleGroup = "Peito",
+            equipment = "Barra",
+            mediaUrl = "https://example.com/supino1.jpg",
+            mediaUrl2 = "https://example.com/supino2.jpg"
+        )
+        
+        val testExercise2 = com.example.fitcore.domain.model.Exercise(
+            id = "test2", 
+            name = "Supino Inclinado com Halteres",
+            description = "Foca na porção superior do peitoral.",
+            muscleGroup = "Peito superior",
+            equipment = "Halteres",
+            mediaUrl = "https://example.com/inclinado1.jpg",
+            mediaUrl2 = "https://example.com/inclinado2.jpg"
+        )
+        
+        val workoutItems = listOf(
+            com.example.fitcore.domain.model.WorkoutItem(
+                id = "item1",
+                exercise = testExercise1,
+                sets = "4",
+                reps = "8-10",
+                restSeconds = 120,
+                observation = "Foque na explosão na subida.",
+                order = 1
+            ),
+            com.example.fitcore.domain.model.WorkoutItem(
+                id = "item2",
+                exercise = testExercise2, 
+                sets = "3",
+                reps = "10-12",
+                restSeconds = 90,
+                observation = "Controle o movimento na descida.",
+                order = 2
+            )
+        )
+        
+        return EnrichedWorkout(
+            id = "test-workout",
+            name = "Treino de Peito - Teste",
+            description = "Treino simulado para teste de imagens",
+            isPublic = false,
+            items = workoutItems
+        )
+    }
 
     private fun loadChestWorkout() {
         viewModelScope.launch {

@@ -18,47 +18,30 @@ fun ExerciseAnimationImages(
     mediaUrl2: String?,
     exerciseName: String,
     modifier: Modifier = Modifier,
-    isAnimating: Boolean = true
+    isAnimating: Boolean = true // mantido apenas para compatibilidade
 ) {
-    // Estado para controlar se a animação está ativa
-    var animationActive by remember { mutableStateOf(isAnimating) }
+    // Converte localhost para o IP correto do emulador Android
+    val convertedUrl = mediaUrl?.replace("localhost", "10.0.2.2")
+    val convertedUrl2 = mediaUrl2?.replace("localhost", "10.0.2.2")
     
-    // Converte localhost para o IP correto da rede
-    val convertedUrl = mediaUrl?.replace("localhost", "192.168.0.9")
-    val convertedUrl2 = mediaUrl2?.replace("localhost", "192.168.0.9")
-    
-    // Animação infinita que alterna entre 0f e 1f a cada 1.5 segundos
+    // Animação infinita simples que alterna entre as imagens a cada 1.5 segundos
     val infiniteTransition = rememberInfiniteTransition(label = "exercise_animation")
     val animationProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
-        animationSpec = if (animationActive && isAnimating) {
-            infiniteRepeatable(
-                animation = tween<Float>(
-                    durationMillis = 1500, // 1.5 segundos para cada posição
-                    easing = LinearEasing
-                ),
-                repeatMode = RepeatMode.Reverse
-            )
-        } else {
-            infiniteRepeatable(
-                animation = tween<Float>(durationMillis = 0),
-                repeatMode = RepeatMode.Restart
-            )
-        },
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
         label = "image_switch"
     )
     
     Box(
-        modifier = modifier,
+        modifier = modifier.clip(RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center
     ) {
         // Determina qual imagem mostrar baseado na animação
-        val showFirstImage = if (animationActive && isAnimating) {
-            animationProgress < 0.5f
-        } else {
-            true // Mostra sempre a primeira quando não está animando
-        }
+        val showFirstImage = animationProgress < 0.5f
         
         if (showFirstImage) {
             // Primeira imagem (posição inicial)
@@ -66,9 +49,7 @@ fun ExerciseAnimationImages(
                 AsyncImage(
                     model = convertedUrl,
                     contentDescription = "$exerciseName - Posição inicial",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(12.dp)),
+                    modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else {
@@ -80,9 +61,7 @@ fun ExerciseAnimationImages(
                 AsyncImage(
                     model = convertedUrl2,
                     contentDescription = "$exerciseName - Posição final",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(12.dp)),
+                    modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else {
@@ -90,34 +69,21 @@ fun ExerciseAnimationImages(
             }
         }
         
-        // Controles de animação no canto superior direito
-        if (isAnimating) {
-            Card(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
-                ),
-                onClick = { animationActive = !animationActive }
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (animationActive) "⏸" else "▶",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Demo",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
+        // Badge "Demo" simplificado
+        Card(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
+            )
+        ) {
+            Text(
+                text = "Demo",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            )
         }
     }
 }

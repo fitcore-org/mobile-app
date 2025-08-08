@@ -36,7 +36,7 @@ import com.google.gson.Gson
 @Composable
 fun LoginScreen(
     loginViewModel: LoginViewModel,
-    onLoginSuccess: (String) -> Unit,
+    onLoginSuccess: (com.example.fitcore.domain.model.User) -> Unit,
     onNavigateToForgotPassword: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
@@ -57,8 +57,7 @@ fun LoginScreen(
 
     LaunchedEffect(key1 = uiState) {
         if (uiState is LoginUiState.Success) {
-            val userJson = Gson().toJson((uiState as LoginUiState.Success).user)
-            onLoginSuccess(userJson)
+            onLoginSuccess((uiState as LoginUiState.Success).user)
         }
     }
 

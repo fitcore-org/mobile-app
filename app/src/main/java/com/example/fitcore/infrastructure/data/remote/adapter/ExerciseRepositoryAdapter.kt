@@ -2,12 +2,12 @@ package com.example.fitcore.infrastructure.data.remote.adapter
 
 import com.example.fitcore.domain.model.Exercise
 import com.example.fitcore.domain.repository.ExerciseRepositoryPort
-import com.example.fitcore.infrastructure.data.remote.api.ExerciseApiService
+import com.example.fitcore.infrastructure.data.remote.api.RetrofitInstance
 import com.example.fitcore.infrastructure.data.remote.mapper.ExerciseMapper
 
-class ExerciseRepositoryAdapter(
-    private val apiService: ExerciseApiService
-) : ExerciseRepositoryPort {
+class ExerciseRepositoryAdapter : ExerciseRepositoryPort {
+    
+    private val apiService = RetrofitInstance.exerciseApi
     
     override suspend fun getAllExercises(): List<Exercise> {
         return try {
@@ -33,7 +33,8 @@ class ExerciseRepositoryAdapter(
     
     override suspend fun getExerciseById(id: String): Exercise? {
         return try {
-            getAllExercises().find { it.id == id }
+            val exerciseDto = apiService.getExerciseById(id)
+            ExerciseMapper.toDomain(exerciseDto)
         } catch (e: Exception) {
             null
         }

@@ -4,18 +4,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.fitcore.application.di.ViewModelFactoryProvider
-import com.example.fitcore.application.ui.login.ForgotPasswordScreen
 import com.example.fitcore.application.ui.login.LoginScreen
+import com.example.fitcore.application.ui.login.ForgotPasswordScreen
 import com.example.fitcore.application.ui.login.VerificationCodeScreen
 import com.example.fitcore.application.ui.main.MainScreen
 import com.example.fitcore.application.ui.splash.SplashScreen
+import com.example.fitcore.application.viewmodel.UserStateViewModel
 import com.example.fitcore.application.ui.theme.FitcoreTheme
 import com.example.fitcore.application.viewmodel.LoginViewModel
 import com.example.fitcore.domain.model.User
@@ -35,6 +36,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun App() {
     val navController = rememberNavController()
+    val userStateViewModel: UserStateViewModel = viewModel(
+        factory = ViewModelFactoryProvider.provideUserStateViewModelFactory()
+    )
+
     NavHost(navController = navController, startDestination = "splash") {
 
         // Rota da SplashScreen
@@ -48,11 +53,14 @@ fun App() {
 
         // Rota de Login
         composable("login") {
-            val loginViewModel: LoginViewModel = viewModel(factory = ViewModelFactoryProvider.provideLoginViewModelFactory())
+            val loginViewModel: com.example.fitcore.application.viewmodel.LoginViewModel = viewModel(
+                factory = ViewModelFactoryProvider.provideLoginViewModelFactory()
+            )
             LoginScreen(
                 loginViewModel = loginViewModel,
-                onLoginSuccess = { userJson ->
-                    navController.navigate("main/$userJson") {
+                onLoginSuccess = { user ->
+                    userStateViewModel.setUser(user)
+                    navController.navigate("main") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
@@ -84,15 +92,9 @@ fun App() {
         }
         
         // Rota da tela principal
-        composable(
-            "main/{userJson}",
-            arguments = listOf(navArgument("userJson") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val userJson = backStackEntry.arguments?.getString("userJson")
-            val user = Gson().fromJson(userJson, User::class.java)
-            
-            // ✅ CORRIGIDO: Apenas chame a MainScreen. Ela cuidará da própria navegação.
-            MainScreen(user = user)
+        composable("main") {
+            val user by userStateViewModel.user.collectAsState()
+            user?.let { MainScreen(user = it) }
         }
 
         // A rota para "exercise_library" foi removida daqui pois já é gerenciada dentro da MainScreen.

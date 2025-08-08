@@ -40,7 +40,7 @@ fun ExerciseDetailScreen(
     exerciseId: String,
     onNavigateBack: () -> Unit,
     viewModel: ExerciseLibraryViewModel = viewModel(
-        factory = ViewModelFactoryProvider.Factory
+        factory = ViewModelFactoryProvider.provideExerciseLibraryViewModelFactory()
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()
