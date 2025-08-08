@@ -56,13 +56,13 @@ Obs: Importante ter java instalado e ter configurado o Android Studio com as var
 ##  Estrutura do Projeto
 
 ```
-app/
-├── core/                # Regras de negócio e casos de uso (Domínio)
-├── ui/                  # Telas e componentes visuais (Compose)
-├── viewmodel/           # Lógica de apresentação
-├── model/               # Modelos de dados
-├── repository/          # Implementações dos adaptadores (ex: rede, local)
-└── utils/               # Funções auxiliares
+main/java/com/example/fitcore
+├── aplication/                # Orquestra os casos de uso, coordena o fluxo entre interface e domínio e não contém lógica complexa
+├── domain/                    # Regras de negócio puras, possui entidades, casos de uso e interfaces e independente de frameworks ou tecnologias.
+├── infrastructure/            # Lida com tecnologias externas, implementa acesso a banco, APIs, mensageria, e depende de ferramentas como PostgreSQL, RabbitMQ, etc.
+
+
+
 ```
 
 
