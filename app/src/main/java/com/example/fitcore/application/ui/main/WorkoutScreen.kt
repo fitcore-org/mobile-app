@@ -1,5 +1,11 @@
 package com.example.fitcore.application.ui.main
 
+// Imports adicionados
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+// Fim dos imports adicionados
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,16 +36,31 @@ fun WorkoutMainScreen(user: User) {
     val dashboardState by dashboardViewModel.uiState.collectAsState()
     val workoutState by workoutViewModel.uiState.collectAsState()
 
+    // 1. Definição do gradiente
+    val gradientBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFF0a0a0a),
+            Color(0xFF1a1a1a),
+            Color(0xFF2d4a35),
+            Color(0xFF1f3a26),
+            Color(0xFF0d0f0d)
+        )
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            // 2. Aplicação do fundo gradiente
+            .background(brush = gradientBrush)
             .padding(16.dp)
     ) {
         // Seção de Plano de Treino
         Text(
             text = "Seu Plano de Treino",
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp),
+            // 3. Cor do texto ajustada para legibilidade
+            color = Color.White
         )
 
         // Status do Plano
@@ -51,7 +72,9 @@ fun WorkoutMainScreen(user: User) {
         Text(
             text = "Exercícios Disponíveis",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = 12.dp),
+            // 3. Cor do texto ajustada para legibilidade
+            color = Color.White
         )
 
         WorkoutsList(workoutState = workoutState)
@@ -63,7 +86,8 @@ fun TrainingPlanStatusCard(dashboardState: DashboardUiState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            // Cor do card ajustada para combinar com o fundo escuro
+            containerColor = Color.White.copy(alpha = 0.1f)
         )
     ) {
         Box(
@@ -75,9 +99,12 @@ fun TrainingPlanStatusCard(dashboardState: DashboardUiState) {
             when (val state = dashboardState) {
                 is DashboardUiState.Loading -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = Color.White)
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Verificando sua ficha de treino...")
+                        Text(
+                            text = "Verificando sua ficha de treino...",
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
                     }
                 }
 
@@ -86,19 +113,19 @@ fun TrainingPlanStatusCard(dashboardState: DashboardUiState) {
                         Text(
                             text = "Você tem um plano ativo!",
                             style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = Color.White
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = state.trainingPlan.name,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            color = Color.White.copy(alpha = 0.8f)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { /* TODO: Navegar para detalhes do plano */ },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
+                                containerColor = Color(0xFF2d4a35) // Cor do botão ajustada
                             )
                         ) {
                             Text("Ver Detalhes do Plano")
@@ -112,13 +139,13 @@ fun TrainingPlanStatusCard(dashboardState: DashboardUiState) {
                             text = "Nenhuma ficha de treino ativa",
                             style = MaterialTheme.typography.headlineSmall,
                             textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = Color.White
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { /* TODO: Navegar para explorar treinos */ },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
+                                containerColor = Color(0xFF2d4a35)
                             )
                         ) {
                             Text("Explorar Treinos Padrão")
@@ -127,7 +154,7 @@ fun TrainingPlanStatusCard(dashboardState: DashboardUiState) {
                         OutlinedButton(
                             onClick = { /* TODO: Navegar para o chat */ },
                             colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                contentColor = Color.White
                             )
                         ) {
                             Text("Fale com um Personal")
@@ -154,7 +181,7 @@ fun WorkoutsList(workoutState: WorkoutUiState) {
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Color.White)
             }
         }
 
@@ -181,12 +208,22 @@ fun WorkoutList(workouts: List<Workout>) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    // Cor do card ajustada para combinar
+                    containerColor = Color.White.copy(alpha = 0.05f)
                 )
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(workout.title, style = MaterialTheme.typography.titleMedium)
-                    Text(workout.description, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = workout.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = workout.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
                 }
             }
         }
